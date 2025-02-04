@@ -1,17 +1,18 @@
 import streamlit as st
-from utils.db import get_connection, init_db
+from utils.db import init_db
 import time
 import sqlite3
 
-conn = get_connection()
+conn = sqlite3.connect('data/auctions.db', check_same_thread=False)
 c = init_db()
 
 def supplier_interface():
     st.title(f"Espace {st.session_state.user['name']}")
     auction_id = st.number_input("ID de l'enchère", min_value=1)
-    
-    c.execute('SELECT * FROM auctions WHERE id=? AND is_active=1', (auction_id,))
-    auction = c.fetchone()
+
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM auctions WHERE id=? AND is_active=1', (auction_id,))
+    auction = cursor.fetchall()
     if not auction:
         st.error("Enchère introuvable ou terminée.")
         return
@@ -21,7 +22,7 @@ def supplier_interface():
     st.write(f"Temps restant: {int(remaining_time // 60)}:{int(remaining_time % 60):02d}")
     
     # Affichage du meilleur prix
-    c.execute('SELECT MIN(amount) FROM bids WHERE auction_id=?', (auction_id,))
+    cursor.execute('SELECT MIN(amount) FROM bids WHERE auction_id=?', (auction_id,))
     best_bid = c.fetchone()[0] or auction[2]
     st.metric("Meilleure offre actuelle", f"{best_bid} €")
     
@@ -32,7 +33,7 @@ def supplier_interface():
             if new_bid >= best_bid:
                 st.error("Votre offre doit être inférieure au prix actuel !")
             else:
-                c.execute('INSERT INTO bids VALUES (?, ?, ?, ?)',
+                cursor.execute('INSERT INTO bids VALUES (?, ?, ?, ?)',
                          (auction_id, st.session_state.user['name'], new_bid, time.time()))
                 conn.commit()
                 st.success("Offre soumise !")
