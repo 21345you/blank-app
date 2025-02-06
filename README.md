@@ -1,4 +1,4 @@
-# 🎈 Blank app template
+# 🎈 simulation app for auctions
 
 A simple Streamlit app template for you to modify!
 

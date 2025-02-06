@@ -14,9 +14,10 @@ def buyer_interface():
         title = st.text_input("Titre de l'enchère")
         initial_price = st.number_input("Prix initial (€)", min_value=0.0)
         duration = st.number_input("Durée (minutes)", min_value=1)
-        
+        id = st.number_input("L'id de l'enchères",min_value=1)
+
         if st.form_submit_button("Démarrer l'enchère"):
-            auction_id = int(time.time())
+            auction_id = id
             end_time = time.time() + duration * 60
             cursor.execute('INSERT INTO auctions VALUES (?, ?, ?, ?, ?)',
                      (auction_id, title, initial_price, end_time, True))

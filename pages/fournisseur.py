@@ -12,18 +12,22 @@ def supplier_interface():
 
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM auctions WHERE id=? AND is_active=1', (auction_id,))
-    auction = cursor.fetchall()
+    auction = cursor.fetchone()
     if not auction:
         st.error("Enchère introuvable ou terminée.")
         return
     
-    st.subheader(auction[1])
-    remaining_time = auction[3] - time.time()
-    st.write(f"Temps restant: {int(remaining_time // 60)}:{int(remaining_time % 60):02d}")
-    
+    if auction:
+        st.subheader(auction[1])
+        remaining_time = auction[3] - time.time()
+        st.write(f"Temps restant: {int(remaining_time // 60)}:{int(remaining_time % 60):02d}")
+    else:
+        st.warning("y'a aucun enchère active") 
+
     # Affichage du meilleur prix
     cursor.execute('SELECT MIN(amount) FROM bids WHERE auction_id=?', (auction_id,))
-    best_bid = c.fetchone()[0] or auction[2]
+    best_bid_result = cursor.fetchone()
+    best_bid = best_bid_result[0] if best_bid_result and best_bid_result[0] is not None else (auction[2] if auction and len(auction) > 2 else "N/A")
     st.metric("Meilleure offre actuelle", f"{best_bid} €")
     
     # Soumission d'offre
